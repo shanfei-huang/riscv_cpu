@@ -21,6 +21,7 @@ module inst_rom(
         instr_mem[9] = 8'h83;
         instr_mem[10] = 8'h62;
         instr_mem[11] = 8'h00;
+        
         // li t3,4097
         // lui x28,1
         instr_mem[12] = 8'h37;
@@ -49,10 +50,10 @@ module inst_rom(
         instr_mem[30] = 8'hce;
         instr_mem[31] = 8'h01;
         // auipc t6,1
-        /*
-        汇编器所完成的功能是把汇编代码翻译成对应的机器码,
-        所以在这条指令所完成的功能是pc + 4096
-        */
+        
+        // 汇编器所完成的功能是把汇编代码翻译成对应的机器码,
+        // 所以在这条指令所完成的功能是pc + 4096
+        
         instr_mem[32] = 8'h97;
         instr_mem[33] = 8'h1f;
         instr_mem[34] = 8'h00;

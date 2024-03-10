@@ -14,13 +14,15 @@ module exe(
     // reg
     input           e_reg_wen_i,
     input           e_reg_mux_i,
+    input [4:0]     e_reg_raddr1_i,
+    input [4:0]     e_reg_raddr2_i,
     input [4:0]     e_reg_waddr_i,
     output          e_reg_wen_o,
     output          e_reg_mux_o,
     output [4:0]    e_reg_waddr_o,
     // mem
     input           e_mem_wen_i,
-    input [63:0]    e_mem_wdata_temp_i,
+    input  [63:0]   e_mem_wdata_temp_i,
     output          e_mem_wen_o,
     output [63:0]   e_mem_wdata_temp_o,
     output [63:0]   e_mem_addr_o,

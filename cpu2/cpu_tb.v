@@ -16,7 +16,7 @@ module cpu_tb();
         rst_n = 1'b0;
         #1
         rst_n = 1'b1;
-        #10000
+        #30000
         $finish();
     end
 

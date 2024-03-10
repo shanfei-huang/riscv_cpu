@@ -15,12 +15,20 @@ module decode(
     output [63:0]   d_reg_rdata1_o,
     output [63:0]   d_reg_rdata2_o,
     // branch
+    input  [63:0]   d_branch_opdata1_i,
+    input  [63:0]   d_branch_opdata2_i,
     output          d_branch_o,
+    output          d_branch_type_o,
+    output          d_store_type_o,
     output [63:0]   d_pc_b_o, 
+    input  [63:0]   d_jump_opdata1_i,
     output          d_jump_jal_o,
     output [63:0]   d_pc_jal_o,
     output          d_jump_jalr_o,
     output [63:0]   d_pc_jalr_o,
+    // to pipe_control
+    output          d_alu_data1_rs1_o,
+    output          d_alu_data2_rs2_o,
 
     // control
     output [2:0]    d_l_mux_o,
@@ -34,10 +42,13 @@ module decode(
     output [1:0]    d_aludata2_mux_o,
     // d_w_mem_oÊÇ·ñÐ´´æ´¢Æ÷ 
     output          d_mem_wen_o,
+    input  [63:0]   d_mem_wdata_temp_i,
     output [63:0]   d_mem_wdata_temp_o,
     // d_w_reg_oÊÇ·ñÐ´¼Ä´æÆ÷
     output          d_reg_wen_o
 );
+
+    assign d_mem_wdata_temp_o = d_mem_wdata_temp_i;
 
     wire [6:0] opcode;
     wire [4:0] rd;
@@ -181,7 +192,6 @@ module decode(
     assign d_reg_raddr1_o = rs1;
     assign d_reg_raddr2_o = rs2;
     assign d_reg_waddr_o = rd;
-    assign d_mem_wdata_temp_o = d_reg_rdata2_i;
 
     assign d_l_mux_o = fun3;
     assign d_s_mux_o = fun3;
@@ -201,6 +211,8 @@ module decode(
     wire alu_data1_rs1;
     assign alu_data1_rs1 = (opcode == `l_type) || (opcode == `s_type) || (opcode == `reg_imm) || (opcode == `reg_reg) ||
                            (opcode == `w_reg_reg) || (opcode == `w_reg_imm);
+    
+    assign d_alu_data1_rs1_o = alu_data1_rs1;
     // ±£ÁôÒ»ÏÂcsr¼Ä´æÆ÷µÄ½Ó¿Ú
     wire alu_data1_csr;
     assign alu_data1_csr = inst_csrrc | inst_csrrci | inst_csrrs | inst_csrrsi | inst_csrrw | inst_csrrwi;
@@ -211,6 +223,9 @@ module decode(
 
     wire alu_data2_rs2;
     assign alu_data2_rs2 = (opcode == `reg_reg) || (opcode == `w_reg_reg);
+
+    assign d_alu_data2_rs2_o = alu_data2_rs2;
+    
     wire alu_data2_imm;
     assign alu_data2_imm = inst_lui || inst_auipc || (opcode == `l_type) || (opcode == `s_type) || (opcode == `reg_imm) || 
                             (opcode == `w_reg_imm);
@@ -310,7 +325,7 @@ module decode(
     wire [63:0] pc_jal;
     assign pc_jal = d_pc_i + imm_jal;
     wire [63:0] pc_jalr;
-    assign pc_jalr = (d_reg_rdata1_i + imm_jalr) & 64'hffff_ffff_ffff_fffe;
+    assign pc_jalr = (d_jump_opdata1_i + imm_jalr) & 64'hffff_ffff_ffff_fffe;
 
     wire branch_beq;
     wire branch_bne;
@@ -320,8 +335,8 @@ module decode(
     wire branch_bgeu;
     wire [63:0] branch_op1;
     wire [63:0] branch_op2;
-    assign branch_op1 = d_reg_rdata1_i;
-    assign branch_op2 = (~d_reg_rdata2_i) + 1'b1;
+    assign branch_op1 = d_branch_opdata1_i;
+    assign branch_op2 = (~d_branch_opdata2_i) + 1'b1;
     wire [63:0] branch_result;
     wire        branch_cin;
     wire        branch_zero;
@@ -339,10 +354,14 @@ module decode(
     assign branch_bgeu = inst_bgeu && ((branch_cin == 1'b1) || branch_zero);
     assign branch = branch_beq | branch_bne | branch_blt | branch_bge | branch_bltu | branch_bgeu;
     assign d_branch_o = branch;
+    wire   branch_type;
+    assign branch_type = inst_beq | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu;
+    assign d_branch_type_o = branch_type;
     assign d_pc_b_o = pc_b;
     assign d_jump_jal_o = inst_jal;
     assign d_pc_jal_o = pc_jal;
     assign d_jump_jalr_o = inst_jalr;
     assign d_pc_jalr_o = pc_jalr;    
+    assign d_store_type_o = inst_sb | inst_sh | inst_sw | inst_sd;
     
 endmodule
